@@ -23,7 +23,7 @@ class MovieOverviewActivity : AppCompatActivity() {
 
 // retrieve the movie data from the intent passed from Main Acitvity by using extra
         val title = intent.extras.getString(EXTRA_TITLE)
-        val url = intent.extras.getString(EXTRA_URL)
+        val overview = intent.extras.getString(EXTRA_OVERVIEW)
 
        // set the title to the movie title
         setTitle(title)
@@ -32,7 +32,7 @@ class MovieOverviewActivity : AppCompatActivity() {
         textView = findViewById(R.id.movie_overview)
 
         //load the movie overview by calling the url on the textView object
-        textView.loadUrl(url)
+        textView.text = overview
 
         }
 
@@ -42,13 +42,13 @@ class MovieOverviewActivity : AppCompatActivity() {
 
         companion object {
             const val EXTRA_TITLE = "title"
-            const val EXTRA_URL = "url"
+            const val EXTRA_OVERVIEW = "url"
 
             fun newIntent(context: Context, movie: Movie): Intent {
                 val detailIntent = Intent(context, MovieOverviewActivity::class.java)
 
                 detailIntent.putExtra(EXTRA_TITLE, movie.title)
-                detailIntent.putExtra(EXTRA_URL, movie.overview)
+                detailIntent.putExtra(EXTRA_OVERVIEW, movie.overview)
 
                 return detailIntent
             }

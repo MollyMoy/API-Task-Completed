@@ -1,6 +1,7 @@
 package com.example.movieapi
 
 import android.content.Context
+import android.content.DialogInterface
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.widget.RecyclerView
@@ -13,6 +14,7 @@ import com.bumptech.glide.module.AppGlideModule
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_main.view.*
 import kotlinx.android.synthetic.main.item_movie_layout.*
 import kotlinx.android.synthetic.main.item_movie_layout.view.*
 import retrofit2.Retrofit
@@ -29,19 +31,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val context = this
-        listView.setOnItemClickListener { _, _, position, _ ->
-        // setting onclick listener to textView
-
-            val Movie = title[position]
-            //getting the movie object from the row that was clicked
-
-            val detailIntent = MovieOverviewActivity.newIntent(context, Movie)
-            //intent created to navigate to the MovieOverviewActivity
-
-            startActivity(detailIntent)
-            //launches the MovieOverviewActivity
-        }
-
 
 
 //initialized the variable from the movies resource list
@@ -51,7 +40,7 @@ class MainActivity : AppCompatActivity() {
         movies_list.adapter = moviesAdapter
 
 //creating an instance of retrofit
-        val retrofit : Retrofit = Retrofit.Builder()
+        val retrofit: Retrofit = Retrofit.Builder()
                 .baseUrl("http://api.themoviedb.org/3/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
@@ -70,9 +59,24 @@ class MainActivity : AppCompatActivity() {
                 },
                         {
                             Toast.makeText(applicationContext, it.message, Toast.LENGTH_LONG).show()
-                })
+                        })
 //two values added in subscribe, one for success and the other for errory
 //this will show a successful message or failure message
+
+
+                search_button.setOnClickListener {
+                    MovieApi.searchMovies(search_bar.text.toString())
+                            .subscribeOn(Schedulers.io())
+                            .unsubscribeOn(Schedulers.computation())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe({
+                                moviesAdapter.setMovies(it.results)
+                            },
+                                    {
+                                        Toast.makeText(applicationContext, it.message, Toast.LENGTH_LONG).show()
+                                    })
+                }
+
     }
 
 
@@ -93,21 +97,34 @@ class MainActivity : AppCompatActivity() {
         override fun onBindViewHolder(holder: MoviesViewHolder, position: Int) {
             holder.bindModel(movies[position])
         }
+
         fun setMovies(data: List<Movie>) {
+            movies.clear()
             movies.addAll(data)
             notifyDataSetChanged()
-    }
-        inner class MoviesViewHolder (itemView: View) : RecyclerView.ViewHolder(itemView){
+        }
+
+        inner class MoviesViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
 
-
-            val heading : TextView = itemView.movie_title
-            var moviePoster : ImageView = itemView.movie_poster_path
+            val heading: TextView = itemView.movie_title
+            var moviePoster: ImageView = itemView.movie_poster_path
 
 
             fun bindModel(movie: Movie) {
                 heading.text = movie.title
 
+                itemView.setOnClickListener {
+                    // setting onclick listener to View
+
+                    //getting the movie object from the row that was clicked
+
+                    val detailIntent = MovieOverviewActivity.newIntent(it.context, movie)
+                    //intent created to navigate to the MovieOverviewActivity
+
+                    startActivity(detailIntent)
+                    //launches the MovieOverviewActivity
+                }
 
                 Glide.with(itemView)
                         .load("https://image.tmdb.org/t/p/w500${movie.poster_path}")
@@ -115,7 +132,6 @@ class MainActivity : AppCompatActivity() {
 
 
             }
-
 
 
         }
